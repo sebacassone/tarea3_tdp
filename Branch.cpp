@@ -1,5 +1,18 @@
 #include "Branch.h"
 
+void Branch::addBranchProblems(Simplex &problem, int variableIndex, float value)
+{
+    Simplex p1 = problem.copy();
+    Simplex p2 = problem.copy();
+
+    // Agregar restricciones para ramificar
+    p1.insertConstraint(std::ceil(value), variableIndex, 1);  // x >= ceil(value)
+    p2.insertConstraint(std::floor(value), variableIndex, 2); // x <= floor(value)
+
+    Live.push(p1);
+    Live.push(p2);
+}
+
 vector<float> Branch::solve(Simplex &originalProblem)
 {
     Live.push(originalProblem);

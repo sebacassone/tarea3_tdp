@@ -11,9 +11,5 @@ private:
     void addBranchProblems(Simplex &problem, int variableIndex, float value);
 
 public:
-    Branch(Simplex s);
-    ~Branch();
     std::vector<float> solve(Simplex &originalProblem);
-    void printSolution();
-    Simplex getOptimalSolution();
 };
