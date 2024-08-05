@@ -554,6 +554,7 @@ Simplex Simplex::copy()
     s.icase = this->icase;
     s.a = this->a;
     s.solution = this->solution;
+    s.initialA = this->initialA;
     return s;
 }
 

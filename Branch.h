@@ -8,7 +8,7 @@ class Branch
 {
 private:
     queue<Simplex> Live; // Vector de Simplex (Lives)
-    void addBranchProblems(Simplex &problem, int variableIndex, float value);
+    void addBranchProblems(Simplex &problem, int variableIndex, int value);
 
 public:
     std::vector<float> solve(Simplex &originalProblem);
