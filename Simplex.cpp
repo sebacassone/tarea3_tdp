@@ -157,6 +157,16 @@ std::vector<float> Simplex::solve()
     }
     solution = parameters;
 
+    // Obtiene la cota superior
+    zCotaSuperior = solution[0];
+    // Calcula la cota inferior truncando todos los valores de la solucion y calculando la funcion objetivo
+    zCotaInferior = 0;
+    for (int i = 1; i < solution.size(); i++)
+    {
+        zCotaInferior += (int)solution[i] * initialA[0][i];
+    }
+    isOptimal = zCotaInferior == zCotaSuperior;
+
     return parameters;
 }
 

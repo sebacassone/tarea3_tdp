@@ -16,43 +16,47 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, float value)
 vector<float> Branch::solve(Simplex &originalProblem)
 {
     Live.push(originalProblem);
-    float bestObjectiveValue = numeric_limits<float>::infinity();
+    float bestObjectiveValue = -numeric_limits<float>::max();
     vector<float> bestSolution;
 
     while (!Live.empty())
     {
+        // Extrae el primer elemento de la cola
         Simplex currentProblem = Live.front();
         Live.pop();
 
+        // Resuelve el problema actual
         vector<float> currentSolution = currentProblem.solve();
 
+        // Verifica si el problema actual es factible
         if (!currentProblem.getFeasible())
             continue;
 
-        if (currentProblem.getOptimal() && currentProblem.getObjectiveValue() < bestObjectiveValue)
+        // Verifica si la solución actual es optimo
+        if (currentProblem.getOptimal() && currentProblem.getObjectiveValue() > bestObjectiveValue)
         {
             bestObjectiveValue = currentProblem.getObjectiveValue();
             bestSolution = currentSolution;
+            break;
         }
 
-        if (currentProblem.getFeasible() && !currentProblem.getOptimal())
+        int worstVariableIndex = -1;
+        float worstValue = 0.0;
+
+        // Encuentra la variable con la fracción más grande
+        for (int i = 1; i < currentSolution.size(); ++i)
         {
-            int worstVariableIndex = -1;
-            float worstValue = 0.0;
-
-            for (int i = 1; i < currentSolution.size(); ++i)
+            if (fabs(currentSolution[i] - round(currentSolution[i])) > worstValue) // fabs = valor absoluto
             {
-                if (fabs(currentSolution[i] - round(currentSolution[i])) > worstValue)
-                {
-                    worstVariableIndex = i;
-                    worstValue = fabs(currentSolution[i] - round(currentSolution[i]));
-                }
+                worstVariableIndex = i;
+                worstValue = fabs(currentSolution[i] - round(currentSolution[i]));
             }
+        }
 
-            if (worstVariableIndex != -1)
-            {
-                addBranchProblems(currentProblem, worstVariableIndex, currentSolution[worstVariableIndex]);
-            }
+        // Si no hay variables con fracciones, entonces el problema actual ya tiene una solución entera
+        if (worstVariableIndex != -1)
+        {
+            addBranchProblems(currentProblem, worstVariableIndex, currentSolution[worstVariableIndex]);
         }
     }
 
