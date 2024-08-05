@@ -35,9 +35,9 @@ vector<float> Branch::solve(Simplex &originalProblem)
         // Verifica si la solución actual es optimo
         if (currentProblem.getOptimal() && currentProblem.getObjectiveValue() > bestObjectiveValue)
         {
-            bestObjectiveValue = currentProblem.getObjectiveValue();
             bestSolution = currentSolution;
-            break;
+            bestObjectiveValue = currentProblem.getObjectiveValue();
+            continue;
         }
 
         int worstVariableIndex = -1;
@@ -46,10 +46,13 @@ vector<float> Branch::solve(Simplex &originalProblem)
         // Encuentra la variable con la fracción más grande
         for (int i = 1; i < currentSolution.size(); ++i)
         {
-            if (fabs(currentSolution[i] - round(currentSolution[i])) > worstValue) // fabs = valor absoluto
+            int parteEntera = currentSolution[i];
+            float parteFraccionaria = currentSolution[i] - parteEntera;
+            // Si la parte fraccionaria no es cero entonces es una variable con fracción
+            if (parteFraccionaria != 0.0 && parteFraccionaria > worstValue)
             {
+                worstValue = parteFraccionaria;
                 worstVariableIndex = i;
-                worstValue = fabs(currentSolution[i] - round(currentSolution[i]));
             }
         }
 
