@@ -49,7 +49,7 @@ public:
     void printProblemMatrix();
     void printSolution();
     float getObjectiveValue() const { return zCotaSuperior; }
-
+    float getLowerBound() const { return zCotaInferior; }
     bool getOptimal() const
     {
         return isOptimal;

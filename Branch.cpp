@@ -1,7 +1,15 @@
 #include "Branch.h"
 
+/*
+* Agrega dos problemas a la cola de problemas (Dos problemas para ramificar
+por el método de Branch and Bound)
+* @param problem: Problema actual
+* @param variableIndex: Índice de la variable con fracción
+* @param value: Valor de la variable con fracción
+*/
 void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
 {
+    // Se clonan los problemas
     Simplex p1 = problem.copy();
     Simplex p2 = problem.copy();
 
@@ -13,16 +21,23 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
     Live.push(p2);
 }
 
+/*
+ * Resuelve el problema original por el método de Branch and Bound
+ * @param originalProblem: Problema original
+ * @return: Solución del problema original
+ */
 vector<float> Branch::solve(Simplex &originalProblem)
 {
+    // Se agrega el problema original al vector de problemas
     Live.push(originalProblem);
+    // Se hace de esta manera para si o si tener una solución
     float bestObjectiveValue = -numeric_limits<float>::max();
     vector<float> bestSolution;
 
     while (!Live.empty())
     {
         // Extrae el primer elemento de la cola
-        Simplex currentProblem = Live.front();
+        Simplex currentProblem = Live.top();
         Live.pop();
 
         // Resuelve el problema actual
@@ -38,7 +53,7 @@ vector<float> Branch::solve(Simplex &originalProblem)
         {
             bestSolution = currentSolution;
             bestObjectiveValue = currentProblem.getObjectiveValue();
-            continue;
+            return bestSolution;
         }
 
         int worstVariableIndex = -1;
@@ -63,10 +78,10 @@ vector<float> Branch::solve(Simplex &originalProblem)
             addBranchProblems(currentProblem, worstVariableIndex, (int)currentSolution[worstVariableIndex]);
         }
     }
-
+    // Si la solución está vacía, entonces no se encontró solución
     if (bestSolution.empty())
     {
-        cout << "No solution found\n";
+        cout << "No se encontró solución\n";
         return {};
     }
     else

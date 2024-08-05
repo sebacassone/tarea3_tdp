@@ -2,7 +2,7 @@
 
 int main()
 {
-    Simplex s("P2.txt");
+    Simplex s("hola.txt");
     Branch solver;
     std::vector<float> solution = solver.solve(s);
 
