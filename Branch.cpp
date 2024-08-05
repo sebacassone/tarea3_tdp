@@ -34,8 +34,7 @@ vector<float> Branch::solve(Simplex &originalProblem)
 
         // Verifica si la solución actual es optimo
         if (currentProblem.getOptimal() &&
-            currentProblem.getObjectiveValue() > bestObjectiveValue &&
-            currentSolution[0] == currentProblem.getObjectiveValue())
+            currentProblem.getObjectiveValue() > bestObjectiveValue)
         {
             bestSolution = currentSolution;
             bestObjectiveValue = currentProblem.getObjectiveValue();

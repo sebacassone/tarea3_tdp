@@ -20,8 +20,8 @@ private:
     bool isSolved;   // Si no es resuelto significa que no es factible.
     bool isOptimal;  // Si es resuelto y esOptimal es falso, significa que es no acotado.
     bool isFeasible; // Si es resuelto y esFeasible es falso, significa que no es factible.
-    int zCotaSuperior;
-    int zCotaInferior;
+    float zCotaSuperior;
+    float zCotaInferior;
     int icase;
     std::vector<int> izrov;
     std::vector<int> iposv;
@@ -48,7 +48,7 @@ public:
     std::vector<float> getSolution();
     void printProblemMatrix();
     void printSolution();
-    int getObjectiveValue() const { return zCotaSuperior; }
+    float getObjectiveValue() const { return zCotaSuperior; }
 
     bool getOptimal() const
     {
