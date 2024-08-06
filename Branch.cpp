@@ -17,8 +17,18 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
     p1.insertConstraint(value, variableIndex, 1);     // x <= int(value)
     p2.insertConstraint(value + 1, variableIndex, 2); // x >= int(value) + 1
 
-    Live.push(p1);
-    Live.push(p2);
+    // Resuelve los problemas
+    p1.solve();
+    p2.solve();
+
+    if (p1.getFeasible())
+    {
+        Live.push(p1);
+    }
+    if (p2.getFeasible())
+    {
+        Live.push(p2);
+    }
 }
 
 /*
@@ -28,11 +38,12 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
  */
 vector<float> Branch::solve(Simplex &originalProblem)
 {
+
+    // Se hace de esta manera para si o si tener una solución
+    vector<float> bestSolution;
+    vector<float> currentSolution = originalProblem.solve();
     // Se agrega el problema original al vector de problemas
     Live.push(originalProblem);
-    // Se hace de esta manera para si o si tener una solución
-    float bestObjectiveValue = -numeric_limits<float>::max();
-    vector<float> bestSolution;
 
     while (!Live.empty())
     {
@@ -40,34 +51,33 @@ vector<float> Branch::solve(Simplex &originalProblem)
         Simplex currentProblem = Live.top();
         Live.pop();
 
-        // Resuelve el problema actual
-        vector<float> currentSolution = currentProblem.solve();
+        // Se obtiene la solución
+        currentSolution = currentProblem.getSolution();
 
         // Verifica si el problema actual es factible
         if (!currentProblem.getFeasible())
             continue;
 
         // Verifica si la solución actual es optimo
-        if (currentProblem.getOptimal() &&
-            currentProblem.getObjectiveValue() > bestObjectiveValue)
+        if (currentProblem.getOptimal())
         {
             bestSolution = currentSolution;
-            bestObjectiveValue = currentProblem.getObjectiveValue();
             return bestSolution;
         }
 
         int worstVariableIndex = -1;
-        float worstValue = 0.0;
+        float worstDifference = 0.0;
 
-        // Encuentra la variable con la fracción más grande
+        // Encuentra la variable con la fracción más cercana a 0.5, es decir, más lejos de los enteros
         for (int i = 1; i < currentSolution.size(); ++i)
         {
-            int parteEntera = currentSolution[i];
-            float parteFraccionaria = currentSolution[i] - parteEntera;
-            // Si la parte fraccionaria no es cero entonces es una variable con fracción
-            if (parteFraccionaria != 0.0 && parteFraccionaria > worstValue)
+            float parteFraccionaria = currentSolution[i] - floor(currentSolution[i]);
+            // Calcula la distancia de la parte fraccionaria a los enteros más cercanos (0 o 1)
+            float diferencia = min(parteFraccionaria, 1 - parteFraccionaria);
+            // Si la parte fraccionaria no es cero y la diferencia es mayor que la peor diferencia encontrada hasta ahora
+            if (parteFraccionaria != 0.0 && diferencia > worstDifference)
             {
-                worstValue = parteFraccionaria;
+                worstDifference = diferencia;
                 worstVariableIndex = i;
             }
         }
@@ -78,14 +88,6 @@ vector<float> Branch::solve(Simplex &originalProblem)
             addBranchProblems(currentProblem, worstVariableIndex, (int)currentSolution[worstVariableIndex]);
         }
     }
-    // Si la solución está vacía, entonces no se encontró solución
-    if (bestSolution.empty())
-    {
-        cout << "No se encontró solución\n";
-        return {};
-    }
-    else
-    {
-        return bestSolution;
-    }
+    cout << "No solution found" << endl;
+    return bestSolution;
 }

@@ -71,8 +71,6 @@ Simplex::Simplex(std::string fileName)
     this->a.push_back(function);
     this->initialA = a;
     this->isSolved = false;
-    this->isFeasible = false;
-    this->isOptimal = false;
     txtStream.close();
 }
 
@@ -109,8 +107,6 @@ Simplex::Simplex(std::vector<std::vector<float>> a, int m1, int m2, int m3)
     this->m = m;
     this->n = a[0].size() - 1;
     this->isSolved = false;
-    this->isFeasible = false;
-    this->isOptimal = false;
 }
 
 /*
@@ -554,7 +550,6 @@ Simplex Simplex::copy()
     s.icase = this->icase;
     s.a = this->a;
     s.solution = this->solution;
-    s.initialA = this->initialA;
     return s;
 }
 
