@@ -5,7 +5,7 @@
 			"name": "Depurar",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/test_Branch", // Ruta al ejecutable compilado con -g
+			"program": "${workspaceFolder}/test_Simplex", // Ruta al ejecutable compilado con -g
 			"args": [], // Argumentos adicionales del programa, si los hay
 			"stopAtEntry": false, // Si debe detenerse en la entrada del programa
 			"cwd": "${workspaceFolder}", // Directorio de trabajo

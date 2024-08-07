@@ -2,6 +2,7 @@
 #include <queue>
 #include <cmath>
 #include <limits>
+#include <numeric>
 using namespace std;
 
 struct Compare
@@ -27,4 +28,5 @@ private:
 public:
     // método para resolver el problema original por el método de Branch and Bound
     std::vector<float> solve(Simplex &originalProblem);
+    vector<float> greedySolution(Simplex &problem);
 };

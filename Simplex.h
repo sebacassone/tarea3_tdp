@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <algorithm>
 #include <sstream>
 #include <limits>
 #define EPS 1.0e-6
@@ -55,4 +56,26 @@ public:
         return isOptimal;
     }
     bool getFeasible() const { return isFeasible; }
+    std::vector<float> getObjectiveCoefficients() const { return // retornar la primera submatriz de la matriz a
+                                                          std::vector<float>(initialA[0].begin() + 1, initialA[0].end()); }
+    std::vector<float> getWeights() const { return // retornar la primera columna de la matriz a
+                                            std::vector<float>(initialA[1].begin() + 1, initialA[1].end()); }
+    int getNumVariables() const { return n; }
+    bool isFeasible(std::vector<float> solution) const
+    {
+        // Verificar si la solución es factible
+        for (int i = 0; i < m; ++i)
+        {
+            float sum = 0;
+            for (int j = 1; j <= n; ++j)
+            {
+                sum += a[i + 1][j] * solution[j];
+            }
+            if (a[i + 1][0] > sum + EPS)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 };

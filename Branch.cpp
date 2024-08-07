@@ -21,11 +21,11 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
     p1.solve();
     p2.solve();
 
-    if (p1.getFeasible())
+    if (p1.getFeasible() && p1.getObjectiveValue() >= p1.getLowerBound())
     {
         Live.push(p1);
     }
-    if (p2.getFeasible())
+    if (p2.getFeasible() && p2.getObjectiveValue() >= p2.getLowerBound())
     {
         Live.push(p2);
     }
@@ -89,5 +89,61 @@ vector<float> Branch::solve(Simplex &originalProblem)
         }
     }
     cout << "No solution found" << endl;
-    return bestSolution;
+    return {};
+}
+
+vector<float> Branch::greedySolution(Simplex &problem)
+{
+    vector<float> weights = problem.getWeights();
+    vector<float> values = problem.getObjectiveCoefficients();
+    float maxWeight = problem.getMaxWeight();
+
+    vector<int> indices(weights.size());
+    iota(indices.begin(), indices.end(), 0);
+
+    // Ordenar los índices de los ítems por la relación valor/peso en orden descendente
+    sort(indices.begin(), indices.end(), [&](int a, int b)
+         { return (values[a] / weights[a]) > (values[b] / weights[b]); });
+
+    vector<float> solution(weights.size(), 0.0);
+    float currentWeight = 0.0;
+    float totalValue = 0.0;
+
+    for (int i : indices)
+    {
+        if (currentWeight + weights[i] <= maxWeight)
+        {
+            solution[i] = 1.0; // Tomar el ítem completo
+            currentWeight += weights[i];
+            totalValue += values[i];
+        }
+        else
+        {
+            // Si el ítem no cabe completamente, puedes agregar una fracción de él.
+            float fraction = (maxWeight - currentWeight) / weights[i];
+            solution[i] = fraction;
+            totalValue += values[i] * fraction;
+            break; // La mochila está llena
+        }
+    }
+
+    // `totalValue` es la suma de valores de ítems seleccionados.
+    return solution;
+}
+
+// Método para agregar una restricción basada en la solución Greedy
+void Branch::addGreedyConstraint(Simplex &problem)
+{
+    vector<float> greedySolution = greedySolution(problem);
+    float V_greedy = accumulate(greedySolution.begin(), greedySolution.end(), 0.0f);
+
+    // Crear una nueva restricción que garantiza que el valor total es al menos V_greedy
+    vector<float> coefficients = problem.getObjectiveCoefficients();
+    vector<float> newConstraint(coefficients.size(), 0);
+    for (int i = 0; i < coefficients.size(); ++i)
+    {
+        newConstraint[i] = coefficients[i];
+    }
+
+    problem.addConstraint(newConstraint, V_greedy);
 }
