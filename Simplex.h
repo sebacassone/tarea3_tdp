@@ -45,6 +45,7 @@ public:
     ~Simplex();
     std::vector<float> solve(); // el retorno es [Z, x1, x2, ..., xn]
     void insertConstraint(float b, int var, int type);
+    void insertComplexConstraint(std::vector<float> coeffs, float b, int type);
     Simplex copy();
     std::vector<float> getSolution();
     void printProblemMatrix();
@@ -61,21 +62,19 @@ public:
     std::vector<float> getWeights() const { return // retornar la primera columna de la matriz a
                                             std::vector<float>(initialA[1].begin() + 1, initialA[1].end()); }
     int getNumVariables() const { return n; }
-    bool isFeasible(std::vector<float> solution) const
+    float getMaxWeight() const
     {
-        // Verificar si la solución es factible
-        for (int i = 0; i < m; ++i)
+        // Obtener el peso máximo
+        return initialA[1][0];
+    }
+    float calculateObjectiveValue(const std::vector<float> &solution) const
+    {
+        // Calcular el valor de la función objetivo
+        float z = 0;
+        for (int i = 0; i < n; i++)
         {
-            float sum = 0;
-            for (int j = 1; j <= n; ++j)
-            {
-                sum += a[i + 1][j] * solution[j];
-            }
-            if (a[i + 1][0] > sum + EPS)
-            {
-                return false;
-            }
+            z += initialA[0][i + 1] * solution[i];
         }
-        return true;
+        return z;
     }
 };

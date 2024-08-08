@@ -132,6 +132,7 @@ std::vector<float> Simplex::solve()
 {
     // Si ya se resolvio el problema, se retorna la solucion
     icase = simplx(); //
+    // Se reemplaza la matriz a con la matriz inicial
     isSolved = true;
     // Si es la solución optima, cambiar el parámetro
     if (icase != 0)
@@ -521,6 +522,52 @@ void Simplex::insertConstraint(float b, int var, int type)
         m2++;
         break;
     case 3: // var == b
+        this->initialA.insert(this->initialA.begin() + m + 1, constraint);
+        m3++;
+        break;
+    default:
+        return;
+        break;
+    }
+    m++;
+    isSolved = false;
+    a = initialA;
+    solution.clear();
+}
+
+void Simplex::insertComplexConstraint(std::vector<float> coeffs, float b, int type)
+{
+    // Verifica que el tamaño del vector de coeficientes coincida con el número de variables.
+    if (coeffs.size() != n || b < 0.0)
+    {
+        return;
+    }
+
+    // Crea la nueva restricción con los coeficientes y el valor b
+    std::vector<float> constraint(n + 1, 0.0);
+    constraint[0] = b; // b es V_greedy en este caso.
+
+    // Llena el vector con los coeficientes de cada variable
+    for (int i = 0; i < n; i++)
+    {
+        if (coeffs[i] == 1.0)
+        {
+            constraint[i + 1] = -coeffs[i];
+        }
+    }
+
+    switch (type)
+    {
+    case 1: // Coefficients * vars <= b
+            // Quiero que me inserte como segunda restricción después de la función objetivo
+        this->initialA.insert(this->initialA.begin() + m1 + 1, constraint);
+        m1++;
+        break;
+    case 2: // Coefficients * vars >= b
+        this->initialA.insert(this->initialA.begin() + m1 + m2 + 1, constraint);
+        m2++;
+        break;
+    case 3: // Coefficients * vars == b
         this->initialA.insert(this->initialA.begin() + m + 1, constraint);
         m3++;
         break;

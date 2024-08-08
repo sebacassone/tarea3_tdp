@@ -5,7 +5,7 @@ using namespace std;
 
 int main()
 {
-    Simplex s("P2.txt");
+    Simplex s("1.txt");
     vector<float> sol = s.solve();
     if (sol.empty())
     {
