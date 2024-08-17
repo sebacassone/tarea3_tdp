@@ -1,5 +1,5 @@
-#include "Branch.h"
 #include <chrono> // Para medir el tiempo de ejecución
+#include "Branch.h"
 using namespace std::chrono;
 
 int main()

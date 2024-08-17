@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Simplex.h"
 
 using namespace std;
