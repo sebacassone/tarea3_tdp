@@ -2,7 +2,7 @@
 
 int main()
 {
-    Simplex s("7.txt");
+    Simplex s("1.txt");
     Branch solver;
     std::vector<float> solution = solver.solve(s);
 
@@ -17,7 +17,7 @@ int main()
     }
     else
     {
-        std::cout << "No solution found\n";
+        std::cout << "Solución no encontrada" << std::endl;
     }
     return 0;
 }

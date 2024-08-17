@@ -139,6 +139,7 @@ std::vector<float> Simplex::solve()
     {
         std::vector<float> emptyVector;
         isFeasible = false;
+        std::cout << "No se pudo resolver el problema." << std::endl;
         return emptyVector; // No hay solucion
     }
     isFeasible = true;
@@ -154,14 +155,17 @@ std::vector<float> Simplex::solve()
     }
     solution = parameters;
 
-    // Obtiene la cota superior
+    // Obtiene la cota superior (valor de la función objetivo de la solución actual)
     zCotaSuperior = solution[0];
-    // Calcula la cota inferior truncando todos los valores de la solucion y calculando la funcion objetivo
+
+    // Calcula la cota inferior truncando todos los valores de la solución y calculando la función objetivo
     zCotaInferior = 0;
     for (int i = 1; i < solution.size(); i++)
     {
-        zCotaInferior += (int)solution[i] * initialA[0][i];
+        zCotaInferior += std::floor(solution[i]) * initialA[0][i];
     }
+
+    // Verifica si la solución es óptima
     isOptimal = zCotaInferior == zCotaSuperior;
 
     return parameters;
@@ -537,45 +541,51 @@ void Simplex::insertConstraint(float b, int var, int type)
 
 void Simplex::insertComplexConstraint(std::vector<float> coeffs, float b, int type)
 {
-    // Verifica que el tamaño del vector de coeficientes coincida con el número de variables.
+    // Verificar que el tamaño del vector de coeficientes coincida con el número de variables
     if (coeffs.size() != n || b < 0.0)
     {
         return;
     }
 
-    // Crea la nueva restricción con los coeficientes y el valor b
+    // Crear una nueva restricción con los coeficientes y el valor 'b'
     std::vector<float> constraint(n + 1, 0.0);
-    constraint[0] = b; // b es V_greedy en este caso.
+    constraint[0] = b; // Establecer el lado derecho de la restricción
 
-    // Llena el vector con los coeficientes de cada variable
+    // Rellenar el vector con los coeficientes de cada variable
     for (int i = 0; i < n; i++)
     {
-        if (coeffs[i] == 1.0)
-        {
+        // Dependiendo del tipo, ajusta los coeficientes
+        if (type == 1 || type == 3)
+        { // <= o ==
+            constraint[i + 1] = -coeffs[i];
+        }
+        else if (type == 2)
+        { // >=
             constraint[i + 1] = -coeffs[i];
         }
     }
 
-    switch (type)
+    // Insertar la restricción en la matriz 'initialA' en la posición adecuada
+    this->initialA.insert(this->initialA.begin() + m1 + m2 + m3 + 2, constraint);
+
+    // Incrementar los contadores según el tipo de restricción
+    if (type == 1)
     {
-    case 1: // Coefficients * vars <= b
-            // Quiero que me inserte como segunda restricción después de la función objetivo
-        this->initialA.insert(this->initialA.begin() + m1 + 1, constraint);
         m1++;
-        break;
-    case 2: // Coefficients * vars >= b
-        this->initialA.insert(this->initialA.begin() + m1 + m2 + 1, constraint);
-        m2++;
-        break;
-    case 3: // Coefficients * vars == b
-        this->initialA.insert(this->initialA.begin() + m + 1, constraint);
-        m3++;
-        break;
-    default:
-        return;
-        break;
     }
+    else if (type == 2)
+    {
+        m2++;
+    }
+    else if (type == 3)
+    {
+        m3++;
+    }
+
+    // Incrementar el contador total de restricciones
     m++;
+
+    // Marcar que el problema no está resuelto y limpiar la solución actual
     isSolved = false;
     a = initialA;
     solution.clear();
@@ -710,4 +720,156 @@ void Simplex::printSolution()
     {
         std::cout << "No esta resuelto." << std::endl;
     }
+}
+
+bool Simplex::isConstraintFeasible(float b, int var, int type)
+{
+    // Realizar las verificaciones básicas
+    if (var <= 0 || var > n)
+    {
+        return false;
+    }
+
+    // Verificar contra las restricciones existentes
+    for (const auto &constraint : initialA)
+    {
+        // Obtenemos el coeficiente de la variable en la restricción actual
+        float coef = constraint[var];
+        if (constraint[0] == 0)
+        {
+            continue;
+        }
+
+        // La suma inicialmente debe reflejar el término independiente b
+        float sum = coef * b;
+
+        switch (type)
+        {
+        case 1: // <= b
+            if (coef != 0 && sum > constraint[0])
+            {
+                return false;
+            }
+            break;
+        case 2: // >= b
+            if (coef != 0 && sum < constraint[0])
+            {
+                return false;
+            }
+            break;
+        case 3: // == b
+            if (coef != 0 && sum != constraint[0])
+            {
+                return false;
+            }
+            break;
+        }
+    }
+
+    return true;
+}
+
+/*
+    Descripcion: este metodo permite obtener el valor de la funcion
+        objetivo.
+    Parametros: No tiene.
+    Retorno: Valor de la funcion objetivo.
+*/
+float Simplex::getObjectiveValue() const
+{
+    return zCotaSuperior;
+}
+
+/*
+    Descripcion: este metodo permite obtener el valor minimo
+        de la funcion objetivo.
+    Parametros: No tiene.
+    Retorno: Valor minimo de la funcion objetivo.
+*/
+float Simplex::getLowerBound() const
+{
+    return zCotaInferior;
+}
+
+/*
+    Descripcion: este metodo permite obtener si la solucion
+        es optima.
+    Parametros: No tiene.
+    Retorno: Valor booleano que indica si la solucion es optima.
+*/
+bool Simplex::getOptimal() const
+{
+    return isOptimal;
+}
+
+/*
+    Descripcion: este metodo permite obtener si la solucion
+        es factible.
+    Parametros: No tiene.
+    Retorno: Valor booleano que indica si la solucion es factible.
+*/
+bool Simplex::getFeasible() const
+{
+    return isFeasible;
+}
+
+/*
+    Descripcion: este metodo permite obtener los coeficientes
+        de la funcion objetivo.
+    Parametros: No tiene.
+    Retorno: Vector con los coeficientes de la funcion objetivo.
+*/
+std::vector<float> Simplex::getObjectiveCoefficients() const
+{
+    return std::vector<float>(initialA[0].begin() + 1, initialA[0].end());
+}
+
+/*
+    Descripcion: este metodo permite obtener los pesos de las
+        variables de la funcion objetivo.
+    Parametros: No tiene.
+    Retorno: Vector con los pesos de las variables de la funcion objetivo.
+*/
+std::vector<float> Simplex::getWeights() const
+{
+    return std::vector<float>(initialA[1].begin() + 1, initialA[1].end());
+}
+
+/*
+    Descripcion: este metodo permite obtener el numero de variables
+        de la funcion objetivo.
+    Parametros: No tiene.
+    Retorno: Numero de variables de la funcion objetivo.
+*/
+int Simplex::getNumVariables() const
+{
+    return n;
+}
+
+/*
+    Descripcion: este metodo permite obtener el peso maximo
+        de las variables de la funcion objetivo.
+    Parametros: No tiene.
+    Retorno: Peso maximo de las variables de la funcion objetivo.
+*/
+float Simplex::getMaxWeight() const
+{
+    return initialA[1][0];
+}
+
+/*
+    Descripcion: este metodo permite calcular el valor de la
+        funcion objetivo con una solucion dada.
+    Parametros:
+        -solution: solucion a evaluar.
+    Retorno: Valor de la funcion objetivo con la solucion dada.
+*/
+float Simplex::calculateObjectiveValue(const std::vector<float> &solution) const
+{
+    float z = 0;
+    for (int i = 0; i < n; i++)
+    {
+        z += initialA[0][i + 1] * solution[i];
+    }
+    return z;
 }

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <cmath>
 #include <limits>
 #define EPS 1.0e-6
 
@@ -50,31 +51,14 @@ public:
     std::vector<float> getSolution();
     void printProblemMatrix();
     void printSolution();
-    float getObjectiveValue() const { return zCotaSuperior; }
-    float getLowerBound() const { return zCotaInferior; }
-    bool getOptimal() const
-    {
-        return isOptimal;
-    }
-    bool getFeasible() const { return isFeasible; }
-    std::vector<float> getObjectiveCoefficients() const { return // retornar la primera submatriz de la matriz a
-                                                          std::vector<float>(initialA[0].begin() + 1, initialA[0].end()); }
-    std::vector<float> getWeights() const { return // retornar la primera columna de la matriz a
-                                            std::vector<float>(initialA[1].begin() + 1, initialA[1].end()); }
-    int getNumVariables() const { return n; }
-    float getMaxWeight() const
-    {
-        // Obtener el peso máximo
-        return initialA[1][0];
-    }
-    float calculateObjectiveValue(const std::vector<float> &solution) const
-    {
-        // Calcular el valor de la función objetivo
-        float z = 0;
-        for (int i = 0; i < n; i++)
-        {
-            z += initialA[0][i + 1] * solution[i];
-        }
-        return z;
-    }
+    float getObjectiveValue() const;
+    float getLowerBound() const;
+    bool getOptimal() const;
+    bool getFeasible() const;
+    std::vector<float> getObjectiveCoefficients() const;
+    std::vector<float> getWeights() const;
+    int getNumVariables() const;
+    float getMaxWeight() const;
+    float calculateObjectiveValue(const std::vector<float> &solution) const;
+    bool isConstraintFeasible(float b, int var, int type);
 };

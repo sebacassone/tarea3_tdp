@@ -17,17 +17,23 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
     p1.insertConstraint(value, variableIndex, 1);     // x <= int(value)
     p2.insertConstraint(value + 1, variableIndex, 2); // x >= int(value) + 1
 
-    // Resuelve los problemas
-    p1.solve();
-    p2.solve();
-
-    if (p1.getFeasible() && p1.getObjectiveValue() >= p1.getLowerBound())
+    // Resuelve los problemas si las restricciones son factibles
+    if (p1.isConstraintFeasible(value, variableIndex, 1))
     {
-        Live.push(p1);
+        p1.solve();
+        if (p1.getFeasible() && p1.getObjectiveValue() >= problem.getLowerBound())
+        {
+            Live.push(p1);
+        }
     }
-    if (p2.getFeasible() && p2.getObjectiveValue() >= p2.getLowerBound())
+
+    if (p2.isConstraintFeasible(value + 1, variableIndex, 2))
     {
-        Live.push(p2);
+        p2.solve();
+        if (p2.getFeasible() && p2.getObjectiveValue() >= problem.getLowerBound())
+        {
+            Live.push(p2);
+        }
     }
 }
 
@@ -38,19 +44,18 @@ void Branch::addBranchProblems(Simplex &problem, int variableIndex, int value)
  */
 vector<float> Branch::solve(Simplex &originalProblem)
 {
-    // Se hace de esta manera para si o si tener una solución
-    vector<float> bestSolution = originalProblem.solve();
     // Se agrega una restricción greedy para obtener una cota superior
     vector<float> costosOriginal = originalProblem.getObjectiveCoefficients();
     vector<float> pesosOriginal = originalProblem.getWeights();
     vector<float> greedySolution = greedy(originalProblem, costosOriginal, pesosOriginal);
-    float greedyValue = originalProblem.calculateObjectiveValue(greedySolution);
+    greedyValue = originalProblem.calculateObjectiveValue(greedySolution);
     if (greedyValue > 0)
     {
-        originalProblem.insertComplexConstraint(greedySolution, greedyValue, 2);
+        originalProblem.insertComplexConstraint(pesosOriginal, greedyValue, 2);
         // Agrega el calculo de la función objetivo al inicio del vector
         greedySolution.insert(greedySolution.begin(), greedyValue);
     }
+
     // Se resuelve el problema original
     vector<float> currentSolution;
     originalProblem.solve();
@@ -63,21 +68,17 @@ vector<float> Branch::solve(Simplex &originalProblem)
         Simplex currentProblem = Live.top();
         Live.pop();
 
-        // Se obtiene la solución
-        currentSolution = currentProblem.getSolution();
-
-        if (!currentProblem.getFeasible() && currentProblem.calculateObjectiveValue(greedySolution) && bestSolution[0])
-            return greedySolution;
-
         // Verifica si el problema actual es factible
         if (!currentProblem.getFeasible())
             continue;
 
+        // Se obtiene la solución
+        currentSolution = currentProblem.getSolution();
+
         // Verifica si la solución actual es optimo
         if (currentProblem.getOptimal())
         {
-            bestSolution = currentSolution;
-            return bestSolution;
+            return currentSolution;
         }
 
         int worstVariableIndex = -1;
@@ -107,7 +108,13 @@ vector<float> Branch::solve(Simplex &originalProblem)
     return {};
 }
 
-// Implementación del algoritmo codicioso
+/*
+ * Resuelve el problema con greedy
+ * @param problem: Problema original
+ * @param costos: Costos de las variables
+ * @param pesos: Pesos de las variables
+ * @return: Solución greedy
+ */
 vector<float> Branch::greedy(const Simplex &problem, const vector<float> &costos, const vector<float> &pesos)
 {
     priority_queue<Element> elements;
